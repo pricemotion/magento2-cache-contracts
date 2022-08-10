@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+err_usage() {
+	echo "Usage: $0 --php {7|8}" >&2
+	exit 1
+}
+
+php=
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		--php)
+			php=$2
+			shift
+			;;
+		*)
+			err_usage
+			;;
+	esac
+	shift
+done
+
+if [[ $php != 7 ]] && [[ $php != 8 ]]; then
+	err_usage
+fi
+
+ref="$(git stash create)"
+if [[ ! $ref ]]; then
+    ref="$(git rev-parse HEAD)"
+fi
+
+tmp="$(mktemp -d)"
+cleanup() { rm -rf "$tmp"; }
+trap cleanup EXIT
+
+files=(src test)
+
+git archive "$ref" "${files[@]}" | tar x -C "$tmp"
+
+PHP_VERSION="$php" php composer.json.php > "$tmp/composer.json"
+files+=(composer.json)
+
+cd "$tmp"
+
+if [[ $php = 7 ]]; then
+	replace=
+elif [[ $php = 8 ]]; then
+	replace='$1'
+fi
+find src -name '*.php' -type f -exec perl -p -i -e 's~/\*!(.*?)\*/~'"$replace"'~g' {} +
+
+tar c "${files[@]}"

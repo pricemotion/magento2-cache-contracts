@@ -1,0 +1,12 @@
+composer
+php81
+php81-bcmath
+php81-dom
+php81-gd
+php81-intl
+php81-simplexml
+php81-sodium
+php81-tokenizer
+php81-xml
+php81-xmlwriter
+php81-xsl

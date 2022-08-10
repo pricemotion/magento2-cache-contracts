@@ -38,7 +38,7 @@ class Item implements CacheItemInterface {
         return $this->key;
     }
 
-    public function get() {
+    public function get()/*!: mixed */ {
         return $this->isHit ? $this->value : null;
     }
 
